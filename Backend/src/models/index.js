@@ -12,6 +12,10 @@ import OrderProductModel from './OrderProduct.js'; // Verifique a capitalizaçã
 const env = process.env.NODE_ENV || 'development';
 const config = dbConfig[env]; // Seleciona o objeto de configuração (development ou production)
 
+console.log("DEBUG: Configuração do ambiente:", env);
+console.log("DEBUG: Host do BD lido da config:", config.host);
+console.log("DEBUG: Variável de ambiente MYSQL_HOST:", process.env.MYSQL_HOST);
+
 // **CRUCIAL:** Inicializa o Sequelize USANDO o objeto 'config' selecionado
 const sequelize = new Sequelize(
   config.database,
