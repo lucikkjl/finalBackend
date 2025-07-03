@@ -5,27 +5,28 @@ import UserModel from './user.js';
 import CategoryModel from './category.js';
 import ProductModel from './product.js';
 import OrderModel from './order.js';
-import OrderProductModel from './OrderProduct.js'; // Verifique a capitalização deste nome de arquivo!
+import OrderProductModel from './OrderProduct.js'; // Verifique a capitalização do nome do arquivo!
 
-// Obtém o ambiente atual (development ou production)
+// **CRUCIAL:** Obtém o ambiente atual (development ou production)
+// No Railway, 'NODE_ENV' é automaticamente definido como 'production'.
 const env = process.env.NODE_ENV || 'development';
-const config = dbConfig[env]; // Seleciona a configuração correta com base no ambiente
+const config = dbConfig[env]; // Seleciona o objeto de configuração (development ou production)
 
-// Cria a instância do Sequelize usando as CONFIGURAÇÕES DO AMBIENTE (config)
+// **CRUCIAL:** Inicializa o Sequelize USANDO o objeto 'config' selecionado
 const sequelize = new Sequelize(
-  config.database, // <-- CORRIGIDO: Usar config.database
-  config.username, // <-- CORRIGIDO: Usar config.username
-  config.password, // <-- CORRIGIDO: Usar config.password
+  config.database,
+  config.username,
+  config.password,
   {
-    host: config.host, // <-- CORRIGIDO: Usar config.host
-    dialect: config.dialect, // <-- CORRIGIDO: Usar config.dialect
+    host: config.host,
+    port: config.port, // Inclui a porta, se definida na config
+    dialect: config.dialect,
     operatorsAliases: false,
-    // Adiciona opções de dialeto, especialmente para SSL se o provedor de BD exigir
-    // Isso é importante se o seu banco de dados hospedado exigir SSL (muitos serviços de nuvem exigem)
-    dialectOptions: config.dialectOptions || {}
+    dialectOptions: config.dialectOptions || {} // Para configurações SSL
   }
 );
 
+// Testando a conexão com o banco de dados
 try {
   await sequelize.authenticate();
   console.log('Conectado com o Banco de Dados.');
@@ -44,8 +45,7 @@ db.Product = ProductModel(sequelize, DataTypes);
 db.Order = OrderModel(sequelize, DataTypes);
 db.OrderProduct = OrderProductModel(sequelize, DataTypes);
 
-// Relacionamentos das tabelas
-// Percorre todos os modelos e chama a função associate se ela existir
+// Configura os relacionamentos entre as tabelas
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
@@ -53,8 +53,9 @@ Object.keys(db).forEach(modelName => {
 });
 
 
+// Sincronização das tabelas com o banco de dados
 try {
-  await sequelize.sync({ force: false });
+  await sequelize.sync({ force: false }); // force: false é crucial para não apagar dados!
   console.log('Tabelas sincronizadas.');
 } catch (err) {
   console.error('Erro ao sincronizar as tabelas:', err);
